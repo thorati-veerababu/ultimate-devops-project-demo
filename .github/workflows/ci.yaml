@@ -18,6 +18,7 @@ jobs:
 
       - name: build
         run: |
+          pwd
           cd /src/product-catalog && go build -o product-catalog main.go
 
       - name: unittest
