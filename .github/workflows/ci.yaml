@@ -12,43 +12,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Go 1.22
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.22
+      - name: Setup Go 1.22
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.22
 
-    - name: Build
-      run: |
-        cd src/product-catalog
-        go mod download
-        go build -o product-catalog-service main.go
+      - name: Build
+        run: |
+          cd src/product-catalog
+          go mod download
+          go build -o product-catalog-service main.go
 
-    - name: Unit tests
-      run: |
-        cd src/product-catalog
-        go test ./...
+      - name: Unit tests
+        run: |
+          cd src/product-catalog
+          go test ./...
 
   code-quality:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Go 1.22
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.22
+      - name: Setup Go 1.22
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.22
 
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v6
-      with:
-        version: v1.55.2
-        run: golangci-lint run
-        working-directory: src/product-catalog
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.55.2
+          run: golangci-lint run
+          working-directory: src/product-catalog
 
   docker:
     runs-on: ubuntu-latest
@@ -57,25 +57,25 @@ jobs:
     environment: my_env
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Docker
-      uses: docker/setup-buildx-action@v1
+      - name: Install Docker
+        uses: docker/setup-buildx-action@v1
 
-    - name: Login to Docker
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Docker
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Docker Push
-      uses: docker/build-push-action@v6
-      with:
-        context: src/product-catalog
-        file: src/product-catalog/Dockerfile
-        push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id }}
+      - name: Docker Push
+        uses: docker/build-push-action@v6
+        with:
+          context: src/product-catalog
+          file: src/product-catalog/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id }}
 
   updatek8s:
     runs-on: ubuntu-latest
@@ -83,19 +83,20 @@ jobs:
     needs: docker
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Update tag in Kubernetes deployment manifest
-      run: | 
-        IMAGE="${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id }}"
-    sed -i "s|image: .*|image: ${IMAGE}|" kubernetes/productcatalog/deploy.yaml
-    - name: Commit and push updated manifest
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git add kubernetes/productcatalog/deploy.yaml
-        git commit -m "Update product-catalog image tag to ${{ github.run_id }}"
-        git push origin HEAD:${{ github.ref_name }}
+      - name: Update tag in Kubernetes deployment manifest
+        run: | 
+          IMAGE="${{ secrets.DOCKER_USERNAME }}/product-catalog:${{ github.run_id }}"
+          sed -i "s|image: .*|image: ${IMAGE}|" kubernetes/productcatalog/deploy.yaml
+
+      - name: Commit and push updated manifest
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add kubernetes/productcatalog/deploy.yaml
+          git commit -m "Update product-catalog image tag to ${{ github.run_id }}"
+          git push origin HEAD:${{ github.ref_name }}
