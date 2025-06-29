@@ -95,7 +95,7 @@ jobs:
 
     - name: Commit and push updated manifest
       run: |
-        git config --global user.name "github-actions"
+        git config --global user.name "Veera"
         git config --global user.email "github-actions@github.com"
         git add kubernetes/productcatalog/deploy.yaml
         git commit -m "Update product-catalog image tag to ${{ github.run_id }}"
