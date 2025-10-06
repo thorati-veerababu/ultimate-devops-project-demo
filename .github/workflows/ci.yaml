@@ -82,7 +82,7 @@ jobs:
   ### 4️⃣ Docker Build & Push ###
   docker:
     runs-on: ubuntu-latest
-    needs: [lint, build-test, dependency-scan]
+    needs: [build-test, dependency-scan]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
