@@ -49,10 +49,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # SAST
-      - name: Run CodeQL
-        uses: github/codeql-action/analyze@v3
+       # SAST - Initialize CodeQL first
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
 
+      # Then run analysis
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
       # Dependency scan
       - name: Dependency Scan
         uses: anchore/scan-action@v3
